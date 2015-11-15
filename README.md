@@ -32,9 +32,6 @@ lazy val user = (project in file("user"))
 
 
 
-
-
-
 #まとめ
 * macro むずい
 
