@@ -17,6 +17,7 @@ shapelessを読もうとしていたらmacroだらけで意味不明だったの
 macro本体の実装は利用するコードより先にコンパイルされていなければいけないのでsbtで使う時は
 プロジェクトを分けて先にマクロ側が先にコンパイルされるようにする。
 
+
 sbt
 ```scala
 lazy val user = (project in file("user"))
