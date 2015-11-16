@@ -27,14 +27,26 @@ macro本体の実装は利用するコードより先にコンパイルされて
 
 ```scala
 lazy val user = (project in file("user"))
-  .dependsOn(macroImpl)
+    .dependsOn(macroImpl)
+
+lazy val macroImpl = (project in file("macro-impl"))
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      )
+    )
 ```
 
 
 
 ## macroの種類
-* def macro - 普通の関数と同じように呼び出され値を返す。 新しい型を定義したりはできない。利用者からみれば普通の関数
-* macro annotation - アノテーションとして利用できるマクロ 新しい型を定義できる。
+* def macro :   
+普通の関数と同じように呼び出され値を返す。  
+新しい型を定義したりはできない。  
+利用者からみれば普通の関数  
+* macro annotation :    
+アノテーションとして利用する  
+新しい型を定義できる。
 
 
 ## def macroの定義
@@ -54,6 +66,12 @@ object MacroImpl{
 ```
 
 
+c.enclosingPositionはマクロが展開されている場所で
+c.abortでコンパイルエラーにできる。
+c.infoで警告も出せる。
+
+ 
+###例
 def macroに渡された値がリテラルだったらそのまま返しリテラルではなかったらコンパイルエラーにするmacro
 ```scala
 object isLiteral{
@@ -78,12 +96,15 @@ Apply(Ident(TermName("println")), List(Apply(Select(a, TermName("$plus")), List(
 ```
 
 
-???? => 準クォートを使えばかなり見やすくなる
+????
+
+
+準クォートを使えばかなり見やすくなる
 
 
 
-#準クォートとは ?
-構文木の生成をscalaのコードに似たdslで組み立てられる機能
+##準クォートとは ?
+ASTの生成をscalaのコードに似たdslで組み立てられる機能
 上記の場合
 ```scala
 //二つの整数を足してprintする
@@ -93,6 +114,23 @@ q"println($a + $b)"
 ```
 
 
+準クォートがどのようなASTに変換されるのかを見るには
+```scala
+showRaw(q"")
+```
+で確かめる事ができる。
+
+
+```scala
+showRaw(q"""println("hello world")""")
+//Apply(Select(Select(This(TypeName("scala")), scala.Predef), TermName("println")), List(Literal(Constant("hello world"))))
+```
+
+
+準クォートで抽出/パターンマッチもできる 
+```scala
+val q"class $name  { ..$body }" = tree
+```
 
 ##マクロの中で型を取得する
 ```scala
@@ -111,9 +149,10 @@ object MacroImpl{
 
 
 typeSymbolではかなり詳細な型情報を取得できる。
-isSealed, isCaseClass, isMethodなど
-* case class か どうか判定
+isSealed, isCaseClass, isMethodなどかなり便利   
+
 ```scala
+//case class  であるか判定
 val sym = weakTypeOf[A].typeSymbol
 
 val clazz = if (sym.isClass) sym.asClass else c.abort(c.enclosingPosition, s"$sym is not class")
@@ -123,7 +162,7 @@ c.Expr[Boolean](q"${clazz.isCaseClass}")
 
 
 以上を踏まえて渡された値がcase class またはobjectのみで定義されたsealed trait/classか判定するマクロ
-(つまり代数的データ型かどうか判定する)
+(つまり代数的データ型かどうか判定する)    
 ```scala
 def impl[A: c.WeakTypeTag](c: Context): c.Expr[Boolean] = {
     import c.universe._
@@ -142,6 +181,7 @@ def impl[A: c.WeakTypeTag](c: Context): c.Expr[Boolean] = {
     
     def isSealedHierarchyCaseClassOrCaseObject(symbol: ClassSymbol): Boolean = {
       def helper(classSym: ClassSymbol): Boolean = {
+        //同じファイルから継承されているサブクラスを取得
         classSym.knownDirectSubclasses.toList forall { child0 =>
           println(child0.asClass.isCaseClass)
           val child = child0.asClass
@@ -165,8 +205,11 @@ ________
 
 
 #まとめ
-
-
+* 普通にscalaを書く分には触らないであろうマクロだが使いどころを見極めれば業務でも使える？
+* 準クォートとweakTypeOfで取得したtype sympolさえ理解できていればそこまで難しくはないかも
+参考   
+[Martin Odersky教授の準クォートの論文](http://infoscience.epfl.ch/record/185242/files/QuasiquotesForScala.pdf)
+[scala Documentation](http://docs.scala-lang.org/ja/overviews/macros/overview.html)
 
 
 #以下関係ない事
@@ -174,9 +217,9 @@ reveal.jsではまった事
 
 
 デフォルトでsyntax highlightが効かない！
-  
-    `<code class="scala">`
-  	`</code>`
-  	
-  	をindex.htmlに含めないとsyntax highlightが効かない。。
+```
+<code class="scala">
+</code>
+```
+をindex.htmlに含めないとsyntax highlightが効かない。。
 
