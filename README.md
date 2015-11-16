@@ -72,9 +72,9 @@ object MacroImpl{
 ```
 
 
-c.enclosingPositionはマクロが展開されている場所で
-c.abortでコンパイルエラーにできる。
-c.infoで警告も出せる。
+c.enclosingPositionはマクロが展開されている場所   
+c.abortでコンパイルエラーにできる。   
+c.infoで警告も出せる。   
 
  
 例
