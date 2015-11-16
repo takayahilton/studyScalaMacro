@@ -71,7 +71,7 @@ c.abortでコンパイルエラーにできる。
 c.infoで警告も出せる。
 
  
-###例
+例
 def macroに渡された値がリテラルだったらそのまま返しリテラルではなかったらコンパイルエラーにするmacro
 ```scala
 object isLiteral{
